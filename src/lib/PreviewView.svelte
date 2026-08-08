@@ -29,7 +29,7 @@
   <div class="printable">
     {#each store.cards as card, index (index)}
       <div
-        class="hilton-card"
+        class="label-card"
         role="button"
         tabindex="0"
         title="Click to remove"
@@ -37,7 +37,7 @@
         onkeydown={(e) =>
           (e.key === "Enter" || e.key === " ") && store.deleteCard(index)}
       >
-        <div class="hilton-item">
+        <div class="label-card-item">
           {#each parseBoldLines(card.germanText) as line}
             <p>
               {#each line as run}
@@ -47,7 +47,7 @@
           {/each}
         </div>
         <hr />
-        <div class="hilton-item">
+        <div class="label-card-item">
           {#each parseBoldLines(card.englishText) as line}
             <p>
               {#each line as run}
@@ -56,7 +56,7 @@
             </p>
           {/each}
         </div>
-        <div class="hilton-item">
+        <div class="label-card-item">
           <div class="icons">
             <div class="diets">
               {#each card.diets as diet}
@@ -127,7 +127,7 @@
     overflow-x: auto;
   }
 
-  .hilton-card {
+  .label-card {
     display: grid;
     grid-template-rows: 1fr 2pt 1fr 1fr;
     align-items: center;
@@ -148,18 +148,18 @@
       border-color 120ms ease;
   }
 
-  .hilton-card:hover {
+  .label-card:hover {
     box-shadow: var(--shadow-lg);
     border-color: var(--danger);
     transform: translateY(-2px);
   }
 
-  .hilton-card:focus-visible {
+  .label-card:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
   }
 
-  .hilton-item {
+  .label-card-item {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -168,11 +168,11 @@
     color: var(--text);
   }
 
-  .hilton-card p {
+  .label-card p {
     margin: 0;
   }
 
-  .hilton-card hr {
+  .label-card hr {
     width: 75%;
     margin: auto;
     border: none;

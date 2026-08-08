@@ -82,7 +82,7 @@ a deliberate behavior change (see "Rich text" below) and needs a real
 printed-sheet check before production use, same as any other geometry
 change.
 
-The on-screen preview grid in `PreviewView.svelte` (`.hilton-card`, sized in
+The on-screen preview grid in `PreviewView.svelte` (`.label-card`, sized in
 `pt` at 184×326) mirrors the PDF card's aspect ratio (65:115) intentionally —
 keep both in sync if either changes.
 
