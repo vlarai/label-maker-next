@@ -12,6 +12,37 @@ const MAX_ICON_SIZE = 11;
 const MAX_TEXT_WIDTH = 55;
 const TEXT_OPTS = { align: "center", maxWidth: MAX_TEXT_WIDTH };
 
+// Wrapped-line count for a text run. Bold headings have a floor of 1 line
+// when present (matches the original: a single-line bold heading still
+// counts as 1 toward the block's vertical centering); regular lines only
+// count when they actually wrap, i.e. a single-line regular text counts
+// as 0 — this asymmetry is intentional, calibrated spacing from the
+// original app, not an oversight.
+function wrapLineCount(doc, text, minOne = false) {
+  if (minOne && !text) return 0;
+  const width = doc.getTextDimensions(text || "").w;
+  if (width / MAX_TEXT_WIDTH > 1) return Math.ceil(width / MAX_TEXT_WIDTH);
+  return minOne ? 1 : 0;
+}
+
+// Draws a centered bold heading over a centered regular line, vertically
+// centered as a pair around `rowBaseY`. Used for both the German and
+// English text blocks.
+function drawStackedText(doc, x, rowBaseY, boldText, text, lineHeightMm) {
+  const linesBold = wrapLineCount(doc, boldText, true);
+  const linesRegular = wrapLineCount(doc, text);
+  const base =
+    rowBaseY + lineHeightMm / 2 - (lineHeightMm * (linesBold + linesRegular)) / 2;
+  const boldY = base + (lineHeightMm * linesBold) / 2;
+
+  if (boldText) {
+    doc.setFont(undefined, "bold");
+    doc.text(boldText, x, boldY, TEXT_OPTS);
+    doc.setFont(undefined, "normal");
+  }
+  doc.text(text, x, boldY + lineHeightMm * linesBold, TEXT_OPTS);
+}
+
 export function generateLabelsPdf(cards, diets, allergens, hImages) {
   const doc = new jsPDF({ compress: true });
   const d = new Date();
@@ -21,120 +52,44 @@ export function generateLabelsPdf(cards, diets, allergens, hImages) {
 
   for (let i = 0; i < cards.length; i++) {
     const card = cards[i];
+    const cx = X + CARD_WIDTH / 2 + CARD_WIDTH * xMultiplier;
+    const cardY = Y + CARD_HEIGHT * yMultiplier;
 
-    doc.rect(
-      X + CARD_WIDTH * xMultiplier,
-      Y + CARD_HEIGHT * yMultiplier,
-      CARD_WIDTH,
-      CARD_HEIGHT,
-    );
+    doc.rect(X + CARD_WIDTH * xMultiplier, cardY, CARD_WIDTH, CARD_HEIGHT);
     doc.line(
       X + CARD_WIDTH * xMultiplier + 10,
-      Y + CARD_HEIGHT * yMultiplier + CARD_CELL_HEIGHT,
+      cardY + CARD_CELL_HEIGHT,
       X + CARD_WIDTH * xMultiplier + 10 + 45,
-      Y + CARD_HEIGHT * yMultiplier + CARD_CELL_HEIGHT,
+      cardY + CARD_CELL_HEIGHT,
     );
     doc.setFontSize(14);
+    const lineHeightMm = (doc.getLineHeight() * 25.4) / 72;
 
-    // ---- German block (top row) ----
-    let linesGermanBold = 0;
-    if (card.germanTextBold) {
-      const dim = doc.getTextDimensions(card.germanTextBold);
-      linesGermanBold =
-        dim.w / MAX_TEXT_WIDTH > 1 ? Math.ceil(dim.w / MAX_TEXT_WIDTH) : 1;
-    }
-    let linesGerman = 0;
-    const dimensionGerman = doc.getTextDimensions(card.germanText);
-    if (dimensionGerman.w / MAX_TEXT_WIDTH > 1) {
-      linesGerman = Math.ceil(dimensionGerman.w / MAX_TEXT_WIDTH);
-    }
-
-    if (card.germanTextBold) {
-      doc.setFont(undefined, "bold");
-      doc.text(
-        card.germanTextBold,
-        X + CARD_WIDTH / 2 + CARD_WIDTH * xMultiplier,
-        Y +
-          CARD_HEIGHT * yMultiplier +
-          CARD_CELL_HEIGHT / 2 +
-          (doc.getLineHeight() * 25.4) / 72 / 2 -
-          (doc.getLineHeight() * (linesGermanBold + linesGerman) * 25.4) /
-            72 /
-            2 +
-          (doc.getLineHeight() * linesGermanBold * 25.4) / 72 / 2,
-        TEXT_OPTS,
-      );
-      doc.setFont(undefined, "normal");
-    }
-    doc.text(
+    drawStackedText(
+      doc,
+      cx,
+      cardY + CARD_CELL_HEIGHT / 2,
+      card.germanTextBold,
       card.germanText,
-      X + CARD_WIDTH / 2 + CARD_WIDTH * xMultiplier,
-      Y +
-        CARD_HEIGHT * yMultiplier +
-        CARD_CELL_HEIGHT / 2 +
-        (doc.getLineHeight() * 25.4) / 72 / 2 -
-        (doc.getLineHeight() * (linesGermanBold + linesGerman) * 25.4) /
-          72 /
-          2 +
-        (doc.getLineHeight() * linesGermanBold * 25.4) / 72 / 2 +
-        (doc.getLineHeight() * linesGermanBold * 25.4) / 72,
-      TEXT_OPTS,
+      lineHeightMm,
     );
-
-    // ---- English block (second row) ----
-    let linesEnglishBold = 0;
-    if (card.englishTextBold) {
-      const dim = doc.getTextDimensions(card.englishTextBold);
-      linesEnglishBold =
-        dim.w / MAX_TEXT_WIDTH > 1 ? Math.ceil(dim.w / MAX_TEXT_WIDTH) : 1;
-    }
-    let linesEnglish = 0;
-    const dimEnglish = doc.getTextDimensions(card.englishText);
-    if (dimEnglish.w / MAX_TEXT_WIDTH > 1) {
-      linesEnglish = Math.ceil(dimEnglish.w / MAX_TEXT_WIDTH);
-    }
-
-    if (card.englishTextBold) {
-      doc.setFont(undefined, "bold");
-      doc.text(
-        card.englishTextBold,
-        X + CARD_WIDTH / 2 + CARD_WIDTH * xMultiplier,
-        Y +
-          CARD_HEIGHT * yMultiplier +
-          CARD_CELL_HEIGHT / 2 +
-          CARD_CELL_HEIGHT +
-          (doc.getLineHeight() * 25.4) / 72 / 2 -
-          (doc.getLineHeight() * (linesEnglishBold + linesEnglish) * 25.4) /
-            72 /
-            2 +
-          (doc.getLineHeight() * linesEnglishBold * 25.4) / 72 / 2,
-        TEXT_OPTS,
-      );
-      doc.setFont(undefined, "normal");
-    }
-    doc.text(
+    drawStackedText(
+      doc,
+      cx,
+      cardY + CARD_CELL_HEIGHT / 2 + CARD_CELL_HEIGHT,
+      card.englishTextBold,
       card.englishText,
-      X + CARD_WIDTH / 2 + CARD_WIDTH * xMultiplier,
-      Y +
-        CARD_HEIGHT * yMultiplier +
-        CARD_CELL_HEIGHT / 2 +
-        CARD_CELL_HEIGHT +
-        (doc.getLineHeight() * 25.4) / 72 / 2 -
-        (doc.getLineHeight() * (linesEnglishBold + linesEnglish) * 25.4) /
-          72 /
-          2 +
-        (doc.getLineHeight() * linesEnglishBold * 25.4) / 72 +
-        (doc.getLineHeight() * linesEnglishBold * 25.4) / 72 / 2,
-      TEXT_OPTS,
+      lineHeightMm,
     );
 
     // ---- bottom row (icons) ----
     const dietCount = card.diets.length;
     const allergenCount = card.allergens.length;
     doc.setFontSize(6);
+    const iconBaseY = cardY + CARD_CELL_HEIGHT + 33;
 
     // diet icons
-    for (let j = 0; j <= dietCount; j++) {
+    for (let j = 0; j < dietCount; j++) {
       if (card.diets[j]) {
         const img = new Image();
         img.src =
@@ -142,85 +97,43 @@ export function generateLabelsPdf(cards, diets, allergens, hImages) {
         doc.addImage(
           img,
           "png",
-          X +
-            CARD_WIDTH / 2 +
-            CARD_WIDTH * xMultiplier -
-            (dietCount * MAX_ICON_SIZE) / 2 +
-            MAX_ICON_SIZE * j,
-          Y +
-            CARD_HEIGHT * yMultiplier +
-            CARD_CELL_HEIGHT / 2 +
-            33 +
-            (CARD_CELL_HEIGHT / 2 + 5),
+          cx - (dietCount * MAX_ICON_SIZE) / 2 + MAX_ICON_SIZE * j,
+          iconBaseY + 5,
           MAX_ICON_SIZE,
           MAX_ICON_SIZE,
         );
       }
     }
 
-    // allergen icons
-    let allergenMargin = 5;
-    if (dietCount) allergenMargin = 18;
+    // allergen icons + labels: positions computed once, then drawn in two
+    // passes (all icons, then all labels) to match the original draw order.
+    const allergenMargin = dietCount ? 18 : 5;
     const maxIcons = 5;
     const iconSize = MAX_ICON_SIZE;
-    let rows = Math.ceil(allergenCount / maxIcons);
+    const rows = Math.ceil(allergenCount / maxIcons);
+    const allergenSlots = [];
     let idx = 0;
     for (let row = 0; row < rows; row++) {
       const icons = row === 0 ? allergenCount - (rows - 1) * maxIcons : maxIcons;
       for (let j = 0; j < icons; j++) {
         if (card.allergens[idx]) {
-          const img = new Image();
-          img.src =
-            "data:image/png;base64," +
-            hImages[allergens[card.allergens[idx]].toLowerCase()];
-          doc.addImage(
-            img,
-            "png",
-            X +
-              CARD_WIDTH / 2 +
-              CARD_WIDTH * xMultiplier -
-              (icons * iconSize) / 2 +
-              iconSize * j,
-            Y +
-              CARD_HEIGHT * yMultiplier +
-              CARD_CELL_HEIGHT / 2 +
-              33 +
-              (CARD_CELL_HEIGHT / 2 + allergenMargin) +
-              iconSize * row,
-            iconSize,
-            iconSize,
-          );
+          allergenSlots.push({
+            key: card.allergens[idx],
+            x: cx - (icons * iconSize) / 2 + iconSize * j,
+            y: iconBaseY + allergenMargin + iconSize * row,
+          });
           idx++;
         }
       }
     }
 
-    // second pass: allergen letter labels beneath icons
-    idx = 0;
-    for (let row = 0; row < rows; row++) {
-      const icons = row === 0 ? allergenCount - (rows - 1) * maxIcons : maxIcons;
-      for (let j = 0; j < icons; j++) {
-        if (card.allergens[idx]) {
-          doc.text(
-            allergens[card.allergens[idx]],
-            X +
-              CARD_WIDTH / 2 +
-              CARD_WIDTH * xMultiplier -
-              (icons * iconSize) / 2 +
-              iconSize * j +
-              iconSize / 2,
-            Y +
-              CARD_HEIGHT * yMultiplier +
-              CARD_CELL_HEIGHT / 2 +
-              33 +
-              (CARD_CELL_HEIGHT / 2 + allergenMargin) +
-              iconSize * row +
-              iconSize,
-            TEXT_OPTS,
-          );
-          idx++;
-        }
-      }
+    for (const slot of allergenSlots) {
+      const img = new Image();
+      img.src = "data:image/png;base64," + hImages[allergens[slot.key].toLowerCase()];
+      doc.addImage(img, "png", slot.x, slot.y, iconSize, iconSize);
+    }
+    for (const slot of allergenSlots) {
+      doc.text(allergens[slot.key], slot.x + iconSize / 2, slot.y + iconSize, TEXT_OPTS);
     }
 
     xMultiplier++;
