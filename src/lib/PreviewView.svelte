@@ -4,6 +4,7 @@
   import { ui } from "./ui.svelte.js";
   import { diets, allergens } from "./data.js";
   import { iconUrl } from "./foodIcons.js";
+  import { parseBoldLines } from "./richText.js";
 </script>
 
 <div class="toolbar">
@@ -37,15 +38,23 @@
           (e.key === "Enter" || e.key === " ") && store.deleteCard(index)}
       >
         <div class="hilton-item">
-          {#if card.germanTextBold}<strong>{card.germanTextBold}</strong>{/if}
-          <p>{card.germanText}</p>
+          {#each parseBoldLines(card.germanText) as line}
+            <p>
+              {#each line as run}
+                {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
+              {/each}
+            </p>
+          {/each}
         </div>
         <hr />
         <div class="hilton-item">
-          {#if card.englishTextBold}<strong
-              >{card.englishTextBold}</strong
-            >{/if}
-          <p>{card.englishText}</p>
+          {#each parseBoldLines(card.englishText) as line}
+            <p>
+              {#each line as run}
+                {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
+              {/each}
+            </p>
+          {/each}
         </div>
         <div class="hilton-item">
           <div class="icons">
@@ -160,7 +169,7 @@
   }
 
   .hilton-card p {
-    margin-bottom: 0;
+    margin: 0;
   }
 
   .hilton-card hr {

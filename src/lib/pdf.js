@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { loadIconBytes } from "./foodIcons.js";
+import { parseBoldLines } from "./richText.js";
 
 // Layout constants ported verbatim from the original vanilla/Vue implementation.
 // These values are tuned to a specific physical card stock — do not change them
@@ -13,35 +14,69 @@ const MAX_ICON_SIZE = 11;
 const MAX_TEXT_WIDTH = 55;
 const TEXT_OPTS = { align: "center", maxWidth: MAX_TEXT_WIDTH };
 
-// Wrapped-line count for a text run. Bold headings have a floor of 1 line
-// when present (matches the original: a single-line bold heading still
-// counts as 1 toward the block's vertical centering); regular lines only
-// count when they actually wrap, i.e. a single-line regular text counts
-// as 0 — this asymmetry is intentional, calibrated spacing from the
-// original app, not an oversight.
-function wrapLineCount(doc, text, minOne = false) {
-  if (minOne && !text) return 0;
-  const width = doc.getTextDimensions(text || "").w;
-  if (width / MAX_TEXT_WIDTH > 1) return Math.ceil(width / MAX_TEXT_WIDTH);
-  return minOne ? 1 : 0;
+// Measures a word's width under the given weight. Bold glyphs are wider
+// than regular ones at the same font size, so this must be measured with
+// the matching weight active, not assumed equal.
+function wordWidth(doc, word, bold) {
+  doc.setFont(undefined, bold ? "bold" : "normal");
+  return doc.getTextDimensions(word).w;
 }
 
-// Draws a centered bold heading over a centered regular line, vertically
-// centered as a pair around `rowBaseY`. Used for both the German and
-// English text blocks.
-function drawStackedText(doc, x, rowBaseY, boldText, text, lineHeightMm) {
-  const linesBold = wrapLineCount(doc, boldText, true);
-  const linesRegular = wrapLineCount(doc, text);
-  const base =
-    rowBaseY + lineHeightMm / 2 - (lineHeightMm * (linesBold + linesRegular)) / 2;
-  const boldY = base + (lineHeightMm * linesBold) / 2;
+// Wraps `text` (which may contain **bold** spans and explicit \n breaks)
+// into visual lines no wider than MAX_TEXT_WIDTH, mixing bold/regular words
+// on the same line as needed — a standard greedy line-break, no
+// hyphenation. Each \n starts a fresh line unconditionally (so e.g. a dish
+// name can be kept visually separate from its description); an empty line
+// contributes one blank visual line. Returns an array of
+// { words: [{ word, bold, width }], width } per visual line.
+function layoutParagraph(doc, text, spaceWidth) {
+  const lines = [];
 
-  if (boldText) {
-    doc.setFont(undefined, "bold");
-    doc.text(boldText, x, boldY, TEXT_OPTS);
-    doc.setFont(undefined, "normal");
+  for (const runs of parseBoldLines(text)) {
+    const tokens = runs.flatMap((run) =>
+      run.text
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word) => ({ word, bold: run.bold })),
+    );
+
+    let current = [];
+    let currentWidth = 0;
+    for (const token of tokens) {
+      const w = wordWidth(doc, token.word, token.bold);
+      if (current.length && currentWidth + spaceWidth + w > MAX_TEXT_WIDTH) {
+        lines.push({ words: current, width: currentWidth });
+        current = [];
+        currentWidth = 0;
+      }
+      currentWidth += current.length ? spaceWidth + w : w;
+      current.push({ word: token.word, bold: token.bold, width: w });
+    }
+    lines.push({ words: current, width: currentWidth });
   }
-  doc.text(text, x, boldY + lineHeightMm * linesBold, TEXT_OPTS);
+
+  return lines;
+}
+
+// Lays out and draws `text` as a centered paragraph around `rowCenterY`,
+// mixing bold/regular words inline. Replaces the old fixed bold-heading +
+// regular-subtitle two-block layout now that both live in one field.
+function drawParagraph(doc, x, rowCenterY, text, lineHeightMm) {
+  doc.setFontSize(14);
+  const spaceWidth = wordWidth(doc, " ", false);
+  const lines = layoutParagraph(doc, text, spaceWidth);
+  const startY = rowCenterY + lineHeightMm / 2 - (lines.length * lineHeightMm) / 2;
+
+  lines.forEach((line, i) => {
+    const y = startY + i * lineHeightMm;
+    let wx = x - line.width / 2;
+    for (const word of line.words) {
+      doc.setFont(undefined, word.bold ? "bold" : "normal");
+      doc.text(word.word, wx, y);
+      wx += word.width + spaceWidth;
+    }
+  });
+  doc.setFont(undefined, "normal");
 }
 
 // Draws one label card with its top-left corner at (originX, originY).
@@ -62,19 +97,17 @@ function drawCard(doc, card, originX, originY, diets, allergens, iconBytes) {
   doc.setFontSize(14);
   const lineHeightMm = (doc.getLineHeight() * 25.4) / 72;
 
-  drawStackedText(
+  drawParagraph(
     doc,
     cx,
     originY + CARD_CELL_HEIGHT / 2,
-    card.germanTextBold,
     card.germanText,
     lineHeightMm,
   );
-  drawStackedText(
+  drawParagraph(
     doc,
     cx,
     originY + CARD_CELL_HEIGHT / 2 + CARD_CELL_HEIGHT,
-    card.englishTextBold,
     card.englishText,
     lineHeightMm,
   );

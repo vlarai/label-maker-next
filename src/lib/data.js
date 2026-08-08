@@ -59,10 +59,10 @@ export const allergenOptions = [
 export const defaultDishes = [
   {
     id: 1,
-    germanTextBold: "Hummus",
-    germanText: "mit roter Bete auf einem Karotten-Sonnenblumen-Mix-Brot",
-    englishTextBold: "Hummus",
-    englishText: "topped with Red Beets on a Carrot-Sunflower mix Bread",
+    germanText:
+      "**Hummus**\nmit roter Bete auf einem Karotten-Sonnenblumen-Mix-Brot",
+    englishText:
+      "**Hummus**\ntopped with Red Beets on a Carrot-Sunflower mix Bread",
     allergens: ["a", "n"],
     diets: [],
     category: "Main course",
@@ -72,9 +72,7 @@ export const defaultDishes = [
 
 export function blankDish() {
   return {
-    germanTextBold: "",
     germanText: "",
-    englishTextBold: "",
     englishText: "",
     allergens: [],
     diets: [],

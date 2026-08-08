@@ -57,15 +57,12 @@ cloning or serializing state-proxied data.
 
 ### PDF generation — dimensions are load-bearing
 
-`src/lib/pdf.js` (`generateLabelsPdf`, plus its `drawCard`/`drawStackedText`/
-`wrapLineCount` helpers) reproduces the original app's `print()` method
-using `jspdf` — refactored for readability but verified draw-call-for-
-draw-call identical to the original line-for-line port (mocked-`doc`
-equivalence check across representative cards; see git history on
-`src/lib/pdf.js` for the verification scripts). The layout constants (7.5mm
-margin, 65mm × 115mm cards, 3 columns × 2 rows per page, icon sizing,
-line-wrap thresholds) are calibrated to a specific physical card stock that
-gets printed at 100% scale. **Do not adjust this geometry** without
+`src/lib/pdf.js` (`generateLabelsPdf`, plus its `drawCard`/`drawParagraph`/
+`layoutParagraph` helpers) reproduces the original app's `print()` method
+using `jspdf`. The layout constants (7.5mm margin, 65mm × 115mm cards, 3
+columns × 2 rows per page, icon sizing, `MAX_TEXT_WIDTH` line-wrap
+threshold) are calibrated to a specific physical card stock that gets
+printed at 100% scale. **Do not adjust this geometry** without
 re-verifying against an actual printed sheet — small changes will misalign
 physical labels. `jspdf` is on `4.2.1` (bumped from the originally-pinned
 `2.5.2`); before bumping, `getLineHeight`/`getTextDimensions` output was
@@ -73,6 +70,17 @@ diffed directly between the two versions for the Helvetica font/sizes this
 app uses and found byte-identical, and a real generated PDF was visually
 compared old vs. new. Re-verify the same way (or against a printed sheet)
 before bumping again.
+
+`drawParagraph` does its own word-wrapping (measuring each word's width via
+`getTextDimensions` under the correct bold/normal weight, greedily packing
+words onto lines, then centering each line) rather than relying on jsPDF's
+built-in `maxWidth` auto-wrap, because it needs to mix bold and regular
+words within the same wrapped block — jsPDF's own auto-wrap only supports
+one font weight per call. **Unlike the rest of this section's history, this
+specific layout is not verified byte-identical to any prior version** — it's
+a deliberate behavior change (see "Rich text" below) and needs a real
+printed-sheet check before production use, same as any other geometry
+change.
 
 The on-screen preview grid in `PreviewView.svelte` (`.hilton-card`, sized in
 `pt` at 184×326) mirrors the PDF card's aspect ratio (65:115) intentionally —
@@ -93,6 +101,33 @@ Verified (see git history on this section) that `addImage` given raw
 PDF compared to the old `Image` element + base64 data-URI approach, so this
 switch does not affect print output. `generateLabelsPdf` is async because it
 prefetches every icon a batch of cards needs (deduped) before drawing.
+
+### Rich text: `**bold**` markers, not a structured format
+
+`dish.germanText`/`dish.englishText` are single plain strings per language
+(there used to also be `germanTextBold`/`englishTextBold` heading fields —
+merged away). A string may contain `\n` (explicit forced line breaks) and
+`**bold**` spans anywhere in the text. `src/lib/richText.js`'s
+`parseBoldLines(text)` is the one parser for this syntax — it returns an
+array of lines, each an array of `{ text, bold }` runs — and is reused by
+`PreviewView.svelte`, `DatabaseView.svelte`, `BoldTextInput.svelte`'s live
+preview, and `pdf.js` (which further splits each run into words for its own
+word-wrapping). If you add another place that renders these fields, reuse
+this parser rather than re-deriving bold spans.
+
+`src/lib/BoldTextInput.svelte` is the edit-modal control for these fields: a
+plain `<textarea>` (so `**markers**` are visible as typed) plus a toolbar
+Bold button that wraps/unwraps the current text selection in `**` via
+`selectionStart`/`selectionEnd` + `setSelectionRange`, and a small
+`parseBoldLines`-rendered preview underneath since a native textarea can't
+show inline bold itself.
+
+`store.svelte.js` has a `migrateDish` step (applied in `loadInitialDishes`
+and `replaceDishes`) that folds any legacy `germanTextBold`/`englishTextBold`
+fields — from old `localStorage` data or an old JSON export — into the
+merged field as a leading `**bold**` line, so existing dish data keeps
+working after this change. It's a no-op (passthrough) for already-merged
+dishes, so it's safe to leave in place going forward.
 
 ### Other modules
 

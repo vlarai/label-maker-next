@@ -7,7 +7,7 @@ function loadInitialDishes() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) return parsed.map(migrateDish);
     }
   } catch (e) {
     console.warn("Could not read dishes from localStorage", e);
@@ -18,6 +18,28 @@ function loadInitialDishes() {
 function splitTags(value) {
   const raw = Array.isArray(value) ? value : (value || "").split(",");
   return raw.map((t) => (t || "").trim().toLowerCase()).filter(Boolean);
+}
+
+// Pre-merge-fields dishes had separate germanTextBold/englishTextBold
+// heading fields; fold them into the merged germanText/englishText as a
+// leading **bold** line so old data (localStorage or imported JSON) keeps
+// looking the same after the field merge.
+function mergeBoldFields(bold, rest) {
+  const b = (bold || "").trim();
+  const r = (rest || "").trim();
+  if (!b) return r;
+  if (!r) return `**${b}**`;
+  return `**${b}**\n${r}`;
+}
+
+function migrateDish(d) {
+  if (!("germanTextBold" in d) && !("englishTextBold" in d)) return d;
+  const { germanTextBold, englishTextBold, ...rest } = d;
+  return {
+    ...rest,
+    germanText: mergeBoldFields(germanTextBold, d.germanText),
+    englishText: mergeBoldFields(englishTextBold, d.englishText),
+  };
 }
 
 class LabelStore {
@@ -34,8 +56,6 @@ class LabelStore {
       return (
         (dish.germanText || "").toLowerCase().includes(q) ||
         (dish.englishText || "").toLowerCase().includes(q) ||
-        (dish.germanTextBold || "").toLowerCase().includes(q) ||
-        (dish.englishTextBold || "").toLowerCase().includes(q) ||
         (dish.category || "").toLowerCase().includes(q) ||
         (dish.tags && dish.tags.includes(q))
       );
@@ -48,15 +68,11 @@ class LabelStore {
     return [...this.filteredDishes].sort((a, b) => {
       if (key === "german") {
         return (
-          (a.germanTextBold + a.germanText).localeCompare(
-            b.germanTextBold + b.germanText,
-          ) * modifier
+          (a.germanText || "").localeCompare(b.germanText || "") * modifier
         );
       } else if (key === "english") {
         return (
-          (a.englishTextBold + a.englishText).localeCompare(
-            b.englishTextBold + b.englishText,
-          ) * modifier
+          (a.englishText || "").localeCompare(b.englishText || "") * modifier
         );
       } else if (key === "tags") {
         return (
@@ -135,7 +151,9 @@ class LabelStore {
   }
 
   replaceDishes(arr) {
-    this.dishes = arr.map((d) => ({ ...d, tags: splitTags(d.tags) }));
+    this.dishes = arr
+      .map(migrateDish)
+      .map((d) => ({ ...d, tags: splitTags(d.tags) }));
     this.persist();
   }
 

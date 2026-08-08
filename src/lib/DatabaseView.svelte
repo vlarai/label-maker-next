@@ -2,6 +2,7 @@
   import Icon from "./Icon.svelte";
   import { store } from "./store.svelte.js";
   import { ui } from "./ui.svelte.js";
+  import { parseBoldLines } from "./richText.js";
 
   const columns = [
     { key: "id", label: "ID" },
@@ -51,10 +52,20 @@
           <td>{dish.tags?.length ? dish.tags.join(", ") : ""}</td>
           <td>{dish.category}</td>
           <td>
-            {#if dish.germanTextBold}<strong>{dish.germanTextBold}</strong>{" "}{/if}{dish.germanText}
+            {#each parseBoldLines(dish.germanText) as line, i}
+              {#if i > 0}<br />{/if}
+              {#each line as run}
+                {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
+              {/each}
+            {/each}
           </td>
           <td>
-            {#if dish.englishTextBold}<strong>{dish.englishTextBold}</strong>{" "}{/if}{dish.englishText}
+            {#each parseBoldLines(dish.englishText) as line, i}
+              {#if i > 0}<br />{/if}
+              {#each line as run}
+                {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
+              {/each}
+            {/each}
           </td>
           <td class="col-actions">
             <div class="row-actions">

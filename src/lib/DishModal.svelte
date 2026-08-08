@@ -2,6 +2,7 @@
   import Icon from "./Icon.svelte";
   import ComboBox from "./ComboBox.svelte";
   import TagInput from "./TagInput.svelte";
+  import BoldTextInput from "./BoldTextInput.svelte";
   import { store } from "./store.svelte.js";
   import { ui } from "./ui.svelte.js";
   import { dietOptions, allergenOptions } from "./data.js";
@@ -59,32 +60,12 @@
           <h3>Dish</h3>
           <div class="field-grid">
             <div class="field">
-              <label for="germanTextBold">German text (bold)</label>
-              <input
-                id="germanTextBold"
-                type="text"
-                bind:value={form.germanTextBold}
-              />
-            </div>
-            <div class="field">
               <label for="germanText">German text</label>
-              <input id="germanText" type="text" bind:value={form.germanText} />
-            </div>
-            <div class="field">
-              <label for="englishTextBold">English text (bold)</label>
-              <input
-                id="englishTextBold"
-                type="text"
-                bind:value={form.englishTextBold}
-              />
+              <BoldTextInput id="germanText" bind:value={form.germanText} />
             </div>
             <div class="field">
               <label for="englishText">English text</label>
-              <input
-                id="englishText"
-                type="text"
-                bind:value={form.englishText}
-              />
+              <BoldTextInput id="englishText" bind:value={form.englishText} />
             </div>
           </div>
           <div class="field">
