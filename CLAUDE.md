@@ -57,15 +57,22 @@ cloning or serializing state-proxied data.
 
 ### PDF generation — dimensions are load-bearing
 
-`src/lib/pdf.js` (`generateLabelsPdf`) is a line-for-line port of the
-original app's `print()` method, using `jspdf`. The layout constants (7.5mm
+`src/lib/pdf.js` (`generateLabelsPdf`, plus its `drawCard`/`drawStackedText`/
+`wrapLineCount` helpers) reproduces the original app's `print()` method
+using `jspdf` — refactored for readability but verified draw-call-for-
+draw-call identical to the original line-for-line port (mocked-`doc`
+equivalence check across representative cards; see git history on
+`src/lib/pdf.js` for the verification scripts). The layout constants (7.5mm
 margin, 65mm × 115mm cards, 3 columns × 2 rows per page, icon sizing,
 line-wrap thresholds) are calibrated to a specific physical card stock that
 gets printed at 100% scale. **Do not adjust this geometry** without
 re-verifying against an actual printed sheet — small changes will misalign
-physical labels. `jspdf` is pinned to `2.5.2` deliberately (not the newer
-3.x/4.x majors) because the exact `getTextDimensions`/`getLineHeight`
-behavior this math depends on was verified against that version.
+physical labels. `jspdf` is on `4.2.1` (bumped from the originally-pinned
+`2.5.2`); before bumping, `getLineHeight`/`getTextDimensions` output was
+diffed directly between the two versions for the Helvetica font/sizes this
+app uses and found byte-identical, and a real generated PDF was visually
+compared old vs. new. Re-verify the same way (or against a printed sheet)
+before bumping again.
 
 The on-screen preview grid in `PreviewView.svelte` (`.hilton-card`, sized in
 `pt` at 184×326) mirrors the PDF card's aspect ratio (65:115) intentionally —
