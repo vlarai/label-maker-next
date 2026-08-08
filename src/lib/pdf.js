@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { loadIconBytes } from "./foodIcons.js";
 
 // Layout constants ported verbatim from the original vanilla/Vue implementation.
 // These values are tuned to a specific physical card stock — do not change them
@@ -45,8 +46,10 @@ function drawStackedText(doc, x, rowBaseY, boldText, text, lineHeightMm) {
 
 // Draws one label card with its top-left corner at (originX, originY).
 // Everything below is positioned relative to that origin, so placing a
-// card on the sheet is just picking where its origin lands.
-function drawCard(doc, card, originX, originY, diets, allergens, hImages) {
+// card on the sheet is just picking where its origin lands. `iconBytes`
+// is a Map of lowercase diet/allergen name -> Uint8Array PNG bytes,
+// pre-fetched by generateLabelsPdf before drawing starts.
+function drawCard(doc, card, originX, originY, diets, allergens, iconBytes) {
   const cx = originX + CARD_WIDTH / 2;
 
   doc.rect(originX, originY, CARD_WIDTH, CARD_HEIGHT);
@@ -85,11 +88,8 @@ function drawCard(doc, card, originX, originY, diets, allergens, hImages) {
   // diet icons
   for (let j = 0; j < dietCount; j++) {
     if (card.diets[j]) {
-      const img = new Image();
-      img.src =
-        "data:image/png;base64," + hImages[diets[card.diets[j]].toLowerCase()];
       doc.addImage(
-        img,
+        iconBytes.get(diets[card.diets[j]].toLowerCase()),
         "png",
         cx - (dietCount * MAX_ICON_SIZE) / 2 + MAX_ICON_SIZE * j,
         iconBaseY + 5,
@@ -122,16 +122,34 @@ function drawCard(doc, card, originX, originY, diets, allergens, hImages) {
   }
 
   for (const slot of allergenSlots) {
-    const img = new Image();
-    img.src = "data:image/png;base64," + hImages[allergens[slot.key].toLowerCase()];
-    doc.addImage(img, "png", slot.x, slot.y, iconSize, iconSize);
+    doc.addImage(
+      iconBytes.get(allergens[slot.key].toLowerCase()),
+      "png",
+      slot.x,
+      slot.y,
+      iconSize,
+      iconSize,
+    );
   }
   for (const slot of allergenSlots) {
     doc.text(allergens[slot.key], slot.x + iconSize / 2, slot.y + iconSize, TEXT_OPTS);
   }
 }
 
-export function generateLabelsPdf(cards, diets, allergens, hImages) {
+export async function generateLabelsPdf(cards, diets, allergens) {
+  // Prefetch every icon these cards actually use (deduped) before drawing
+  // starts, so the drawing loop itself stays synchronous.
+  const neededKeys = new Set();
+  for (const card of cards) {
+    for (const d of card.diets) if (diets[d]) neededKeys.add(diets[d].toLowerCase());
+    for (const a of card.allergens)
+      if (allergens[a]) neededKeys.add(allergens[a].toLowerCase());
+  }
+  const iconBytes = new Map();
+  await Promise.all(
+    [...neededKeys].map(async (key) => iconBytes.set(key, await loadIconBytes(key))),
+  );
+
   const doc = new jsPDF({ compress: true });
   const d = new Date();
 
@@ -146,7 +164,7 @@ export function generateLabelsPdf(cards, diets, allergens, hImages) {
       Y + CARD_HEIGHT * yMultiplier,
       diets,
       allergens,
-      hImages,
+      iconBytes,
     );
 
     xMultiplier++;

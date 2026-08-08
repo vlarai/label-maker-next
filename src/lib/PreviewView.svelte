@@ -3,8 +3,7 @@
   import { store } from "./store.svelte.js";
   import { ui } from "./ui.svelte.js";
   import { diets, allergens } from "./data.js";
-
-  const hImages = window.hImages || {};
+  import { iconUrl } from "./foodIcons.js";
 </script>
 
 <div class="toolbar">
@@ -54,8 +53,7 @@
               {#each card.diets as diet}
                 <div class="icon">
                   <img
-                    src={"data:image/png;base64," +
-                      hImages[diets[diet].toLowerCase()]}
+                    src={iconUrl(diets[diet].toLowerCase())}
                     height="50"
                     alt={diets[diet]}
                   />
@@ -66,8 +64,7 @@
               {#each card.allergens as allergen}
                 <div class="icon">
                   <img
-                    src={"data:image/png;base64," +
-                      hImages[allergens[allergen].toLowerCase()]}
+                    src={iconUrl(allergens[allergen].toLowerCase())}
                     height="50"
                     alt={allergens[allergen]}
                   />

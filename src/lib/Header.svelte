@@ -23,9 +23,9 @@
     e.target.value = "";
   }
 
-  function handlePrint() {
+  async function handlePrint() {
     if (!store.cards.length) return;
-    generateLabelsPdf(store.cards, diets, allergens, window.hImages || {});
+    await generateLabelsPdf(store.cards, diets, allergens);
   }
 </script>
 

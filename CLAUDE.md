@@ -78,15 +78,21 @@ The on-screen preview grid in `PreviewView.svelte` (`.hilton-card`, sized in
 `pt` at 184×326) mirrors the PDF card's aspect ratio (65:115) intentionally —
 keep both in sync if either changes.
 
-### Icon data: `public/images.js`
+### Icon data: `public/icons/*.png` + `src/lib/foodIcons.js`
 
-`public/images.js` is an unmodified copy of the original project's icon
-asset — a ~2.3MB file defining `var hImages = {...}` (base64 PNGs keyed by
-lowercase diet/allergen name). It's loaded via a plain `<script src="/images.js">`
-tag in `index.html` (not imported as an ES module), so it's referenced at
-runtime as the global `window.hImages` — see its use in `PreviewView.svelte`
-and `Header.svelte`'s print handler. Because it's a legacy global rather than
-a module export, don't try to `import` it; read `window.hImages` instead.
+Diet/allergen icons are individual PNG files under `public/icons/`, named by
+lowercase diet/allergen name (e.g. `gluten.png`, `indian-vegetarian.png`) —
+extracted byte-for-byte from the original project's legacy `images.js` blob
+(a ~2.3MB file defining a global `hImages` base64-PNG map, loaded via a
+blocking `<script>` tag). `src/lib/foodIcons.js` exports `iconUrl(name)` for
+`<img src>` use (`PreviewView.svelte`) and `loadIconBytes(name)` — a
+fetch-and-cache helper returning a `Promise<Uint8Array>` — for
+`pdf.js`, which passes those raw bytes directly to jsPDF's `addImage`.
+Verified (see git history on this section) that `addImage` given raw
+`Uint8Array` PNG bytes embeds a byte-identical image stream in the output
+PDF compared to the old `Image` element + base64 data-URI approach, so this
+switch does not affect print output. `generateLabelsPdf` is async because it
+prefetches every icon a batch of cards needs (deduped) before drawing.
 
 ### Other modules
 
