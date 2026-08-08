@@ -43,6 +43,94 @@ function drawStackedText(doc, x, rowBaseY, boldText, text, lineHeightMm) {
   doc.text(text, x, boldY + lineHeightMm * linesBold, TEXT_OPTS);
 }
 
+// Draws one label card with its top-left corner at (originX, originY).
+// Everything below is positioned relative to that origin, so placing a
+// card on the sheet is just picking where its origin lands.
+function drawCard(doc, card, originX, originY, diets, allergens, hImages) {
+  const cx = originX + CARD_WIDTH / 2;
+
+  doc.rect(originX, originY, CARD_WIDTH, CARD_HEIGHT);
+  doc.line(
+    originX + 10,
+    originY + CARD_CELL_HEIGHT,
+    originX + 10 + 45,
+    originY + CARD_CELL_HEIGHT,
+  );
+  doc.setFontSize(14);
+  const lineHeightMm = (doc.getLineHeight() * 25.4) / 72;
+
+  drawStackedText(
+    doc,
+    cx,
+    originY + CARD_CELL_HEIGHT / 2,
+    card.germanTextBold,
+    card.germanText,
+    lineHeightMm,
+  );
+  drawStackedText(
+    doc,
+    cx,
+    originY + CARD_CELL_HEIGHT / 2 + CARD_CELL_HEIGHT,
+    card.englishTextBold,
+    card.englishText,
+    lineHeightMm,
+  );
+
+  // ---- bottom row (icons) ----
+  const dietCount = card.diets.length;
+  const allergenCount = card.allergens.length;
+  doc.setFontSize(6);
+  const iconBaseY = originY + CARD_CELL_HEIGHT + 33;
+
+  // diet icons
+  for (let j = 0; j < dietCount; j++) {
+    if (card.diets[j]) {
+      const img = new Image();
+      img.src =
+        "data:image/png;base64," + hImages[diets[card.diets[j]].toLowerCase()];
+      doc.addImage(
+        img,
+        "png",
+        cx - (dietCount * MAX_ICON_SIZE) / 2 + MAX_ICON_SIZE * j,
+        iconBaseY + 5,
+        MAX_ICON_SIZE,
+        MAX_ICON_SIZE,
+      );
+    }
+  }
+
+  // allergen icons + labels: positions computed once, then drawn in two
+  // passes (all icons, then all labels) to match the original draw order.
+  const allergenMargin = dietCount ? 18 : 5;
+  const maxIcons = 5;
+  const iconSize = MAX_ICON_SIZE;
+  const rows = Math.ceil(allergenCount / maxIcons);
+  const allergenSlots = [];
+  let idx = 0;
+  for (let row = 0; row < rows; row++) {
+    const icons = row === 0 ? allergenCount - (rows - 1) * maxIcons : maxIcons;
+    for (let j = 0; j < icons; j++) {
+      if (card.allergens[idx]) {
+        allergenSlots.push({
+          key: card.allergens[idx],
+          x: cx - (icons * iconSize) / 2 + iconSize * j,
+          y: iconBaseY + allergenMargin + iconSize * row,
+        });
+        idx++;
+      }
+    }
+  }
+
+  for (const slot of allergenSlots) {
+    const img = new Image();
+    img.src = "data:image/png;base64," + hImages[allergens[slot.key].toLowerCase()];
+    doc.addImage(img, "png", slot.x, slot.y, iconSize, iconSize);
+  }
+  for (const slot of allergenSlots) {
+    doc.text(allergens[slot.key], slot.x + iconSize / 2, slot.y + iconSize, TEXT_OPTS);
+  }
+}
+
 export function generateLabelsPdf(cards, diets, allergens, hImages) {
   const doc = new jsPDF({ compress: true });
   const d = new Date();
@@ -51,90 +139,15 @@ export function generateLabelsPdf(cards, diets, allergens, hImages) {
   let yMultiplier = 0;
 
   for (let i = 0; i < cards.length; i++) {
-    const card = cards[i];
-    const cx = X + CARD_WIDTH / 2 + CARD_WIDTH * xMultiplier;
-    const cardY = Y + CARD_HEIGHT * yMultiplier;
-
-    doc.rect(X + CARD_WIDTH * xMultiplier, cardY, CARD_WIDTH, CARD_HEIGHT);
-    doc.line(
-      X + CARD_WIDTH * xMultiplier + 10,
-      cardY + CARD_CELL_HEIGHT,
-      X + CARD_WIDTH * xMultiplier + 10 + 45,
-      cardY + CARD_CELL_HEIGHT,
-    );
-    doc.setFontSize(14);
-    const lineHeightMm = (doc.getLineHeight() * 25.4) / 72;
-
-    drawStackedText(
+    drawCard(
       doc,
-      cx,
-      cardY + CARD_CELL_HEIGHT / 2,
-      card.germanTextBold,
-      card.germanText,
-      lineHeightMm,
+      cards[i],
+      X + CARD_WIDTH * xMultiplier,
+      Y + CARD_HEIGHT * yMultiplier,
+      diets,
+      allergens,
+      hImages,
     );
-    drawStackedText(
-      doc,
-      cx,
-      cardY + CARD_CELL_HEIGHT / 2 + CARD_CELL_HEIGHT,
-      card.englishTextBold,
-      card.englishText,
-      lineHeightMm,
-    );
-
-    // ---- bottom row (icons) ----
-    const dietCount = card.diets.length;
-    const allergenCount = card.allergens.length;
-    doc.setFontSize(6);
-    const iconBaseY = cardY + CARD_CELL_HEIGHT + 33;
-
-    // diet icons
-    for (let j = 0; j < dietCount; j++) {
-      if (card.diets[j]) {
-        const img = new Image();
-        img.src =
-          "data:image/png;base64," + hImages[diets[card.diets[j]].toLowerCase()];
-        doc.addImage(
-          img,
-          "png",
-          cx - (dietCount * MAX_ICON_SIZE) / 2 + MAX_ICON_SIZE * j,
-          iconBaseY + 5,
-          MAX_ICON_SIZE,
-          MAX_ICON_SIZE,
-        );
-      }
-    }
-
-    // allergen icons + labels: positions computed once, then drawn in two
-    // passes (all icons, then all labels) to match the original draw order.
-    const allergenMargin = dietCount ? 18 : 5;
-    const maxIcons = 5;
-    const iconSize = MAX_ICON_SIZE;
-    const rows = Math.ceil(allergenCount / maxIcons);
-    const allergenSlots = [];
-    let idx = 0;
-    for (let row = 0; row < rows; row++) {
-      const icons = row === 0 ? allergenCount - (rows - 1) * maxIcons : maxIcons;
-      for (let j = 0; j < icons; j++) {
-        if (card.allergens[idx]) {
-          allergenSlots.push({
-            key: card.allergens[idx],
-            x: cx - (icons * iconSize) / 2 + iconSize * j,
-            y: iconBaseY + allergenMargin + iconSize * row,
-          });
-          idx++;
-        }
-      }
-    }
-
-    for (const slot of allergenSlots) {
-      const img = new Image();
-      img.src = "data:image/png;base64," + hImages[allergens[slot.key].toLowerCase()];
-      doc.addImage(img, "png", slot.x, slot.y, iconSize, iconSize);
-    }
-    for (const slot of allergenSlots) {
-      doc.text(allergens[slot.key], slot.x + iconSize / 2, slot.y + iconSize, TEXT_OPTS);
-    }
 
     xMultiplier++;
     if (xMultiplier >= 3 && yMultiplier === 1 && i < cards.length - 1) {
