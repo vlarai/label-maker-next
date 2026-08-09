@@ -192,4 +192,11 @@
     background: var(--surface-2);
     color: var(--accent);
   }
+
+  @media (max-width: 640px) {
+    .field-btn {
+      width: 1.8rem;
+      height: 1.8rem;
+    }
+  }
 </style>

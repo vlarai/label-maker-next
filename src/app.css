@@ -1,3 +1,7 @@
+/* Responsive breakpoints used throughout the component <style> blocks:
+   640px = phone tier (stacked/single-column layouts)
+   900px = tablet tier (first reflow step, e.g. 3-col grid -> 2-col) */
+
 :root {
   --bg: #f6f7f9;
   --surface: #ffffff;
@@ -5,21 +9,24 @@
   --border: #e2e4e9;
   --text: #1a1d23;
   --text-muted: #6b7280;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
+  --accent: #0d6efd;
+  --accent-hover: #0b5ed7;
   --accent-contrast: #ffffff;
-  --success: #16a34a;
-  --success-hover: #15803d;
-  --danger: #dc2626;
-  --danger-hover: #b91c1c;
-  --warning: #d97706;
-  --warning-hover: #b45309;
+  --success: #198754;
+  --success-hover: #157347;
+  --success-contrast: #ffffff;
+  --danger: #dc3545;
+  --danger-hover: #bb2d3b;
+  --danger-contrast: #ffffff;
+  --warning: #ffc107;
+  --warning-hover: #ffca2c;
+  --warning-contrast: #1a1d23;
   --radius: 10px;
   --radius-sm: 6px;
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
   --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.1);
   --shadow-lg: 0 12px 40px rgba(16, 24, 40, 0.18);
-  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.25);
+  --focus-ring: 0 0 0 3px rgba(13, 110, 253, 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,10 +42,13 @@
     --accent-contrast: #14161a;
     --success: #4ade80;
     --success-hover: #6ee7a0;
+    --success-contrast: #08260f;
     --danger: #f87171;
     --danger-hover: #fca5a5;
+    --danger-contrast: #2a0a0a;
     --warning: #fbbf24;
     --warning-hover: #fcd34d;
+    --warning-contrast: #2a1a02;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
     --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -57,10 +67,13 @@
   --accent-contrast: #14161a;
   --success: #4ade80;
   --success-hover: #6ee7a0;
+  --success-contrast: #08260f;
   --danger: #f87171;
   --danger-hover: #fca5a5;
+  --danger-contrast: #2a0a0a;
   --warning: #fbbf24;
   --warning-hover: #fcd34d;
+  --warning-contrast: #2a1a02;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -169,7 +182,7 @@ a {
 
 .btn-success {
   background: var(--success);
-  color: #08260f;
+  color: var(--success-contrast);
 }
 .btn-success:hover {
   background: var(--success-hover);
@@ -177,7 +190,7 @@ a {
 
 .btn-danger {
   background: var(--danger);
-  color: #2a0a0a;
+  color: var(--danger-contrast);
 }
 .btn-danger:hover {
   background: var(--danger-hover);
@@ -185,7 +198,7 @@ a {
 
 .btn-warning {
   background: var(--warning);
-  color: #2a1a02;
+  color: var(--warning-contrast);
 }
 .btn-warning:hover {
   background: var(--warning-hover);
@@ -260,4 +273,14 @@ label {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 0.85rem;
+  }
+
+  .btn-icon {
+    padding: 0.65rem;
+  }
 }

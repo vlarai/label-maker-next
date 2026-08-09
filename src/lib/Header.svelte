@@ -246,4 +246,14 @@
   .clear-btn:hover {
     color: var(--text);
   }
+
+  @media (max-width: 640px) {
+    .header-top {
+      flex-wrap: wrap;
+    }
+
+    .actions {
+      margin-left: auto;
+    }
+  }
 </style>

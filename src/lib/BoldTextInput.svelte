@@ -130,4 +130,11 @@
   .preview-line strong {
     color: var(--text);
   }
+
+  @media (max-width: 640px) {
+    .bold-btn {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
 </style>

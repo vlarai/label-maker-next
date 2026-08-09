@@ -256,4 +256,14 @@
       transform: scale(1) translateY(0);
     }
   }
+
+  @media (max-width: 640px) {
+    .backdrop {
+      padding: 0.75rem;
+    }
+
+    .modal {
+      max-height: calc(100dvh - 1.5rem);
+    }
+  }
 </style>

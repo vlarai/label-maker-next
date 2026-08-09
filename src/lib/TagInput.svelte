@@ -224,4 +224,11 @@
     background: var(--surface-2);
     color: var(--accent);
   }
+
+  @media (max-width: 640px) {
+    .tag-chip button {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+  }
 </style>

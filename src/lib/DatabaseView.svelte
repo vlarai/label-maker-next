@@ -48,10 +48,10 @@
     <tbody>
       {#each store.sortedDishes as dish (dish.id)}
         <tr>
-          <td class="col-id">{dish.id}</td>
-          <td>{dish.tags?.length ? dish.tags.join(", ") : ""}</td>
-          <td>{dish.category}</td>
-          <td>
+          <td class="col-id" data-label="ID">{dish.id}</td>
+          <td data-label="Tags">{dish.tags?.length ? dish.tags.join(", ") : ""}</td>
+          <td data-label="Category">{dish.category}</td>
+          <td data-label="German">
             {#each parseBoldLines(dish.germanText) as line, i}
               {#if i > 0}<br />{/if}
               {#each line as run}
@@ -59,7 +59,7 @@
               {/each}
             {/each}
           </td>
-          <td>
+          <td data-label="English">
             {#each parseBoldLines(dish.englishText) as line, i}
               {#if i > 0}<br />{/if}
               {#each line as run}
@@ -198,5 +198,78 @@
 
   tbody tr:hover {
     background: var(--surface-2);
+  }
+
+  @media (max-width: 640px) {
+    .table-wrap {
+      overflow-x: visible;
+    }
+
+    table,
+    thead,
+    tbody,
+    tr,
+    td {
+      display: block;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 0.75rem;
+      padding: 0.6rem 0.9rem;
+    }
+
+    tbody tr:hover {
+      background: var(--surface);
+    }
+
+    td {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+      width: auto;
+      padding: 0.4rem 0;
+      border-top: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td:last-child {
+      border-bottom: none;
+    }
+
+    td::before {
+      content: attr(data-label);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .col-actions {
+      text-align: right;
+    }
+
+    .col-actions::before {
+      content: none;
+    }
+
+    .row-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .empty-row {
+      display: block;
+      padding: 2rem 0.9rem;
+    }
   }
 </style>

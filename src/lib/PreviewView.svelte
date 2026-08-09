@@ -127,6 +127,18 @@
     overflow-x: auto;
   }
 
+  @media (max-width: 900px) {
+    .printable {
+      grid-template-columns: repeat(2, 184pt);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .printable {
+      grid-template-columns: repeat(1, 184pt);
+    }
+  }
+
   .label-card {
     display: grid;
     grid-template-rows: 1fr 2pt 1fr 1fr;
