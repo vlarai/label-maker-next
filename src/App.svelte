@@ -22,14 +22,13 @@
 
 <footer class="app-footer">
   <div class="container">
-    <p>Created by RV and JK. &copy; 2025 RVJK</p>
+    <p>Created by RV and JK. &copy; 2026 RVJK</p>
   </div>
 </footer>
 
 <style>
   main {
-    padding-bottom: 4rem;
-    min-height: 60vh;
+    flex: 1;
   }
 
   .app-footer {

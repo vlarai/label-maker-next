@@ -102,6 +102,19 @@ class LabelStore {
     });
   }
 
+  // The most recently added dish, pinned to the top of the database table
+  // regardless of the active sort/search/category/tag filters.
+  get latestDish() {
+    if (!this.dishes.length) return null;
+    return this.dishes.reduce((max, d) => (d.id > max.id ? d : max));
+  }
+
+  get restDishes() {
+    const pinned = this.latestDish;
+    if (!pinned) return this.sortedDishes;
+    return this.sortedDishes.filter((d) => d.id !== pinned.id);
+  }
+
   get categories() {
     return [
       ...new Set(this.dishes.map((d) => d.category).filter(Boolean)),

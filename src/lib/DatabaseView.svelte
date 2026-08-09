@@ -6,10 +6,10 @@
 
   const columns = [
     { key: "id", label: "ID" },
-    { key: "tags", label: "Tags" },
-    { key: "category", label: "Category" },
     { key: "german", label: "German" },
     { key: "english", label: "English" },
+    { key: "category", label: "Category" },
+    { key: "tags", label: "Tags" },
   ];
 
   function sortIcon(col) {
@@ -32,6 +32,62 @@
 </script>
 
 <svelte:window onclickcapture={onDocClick} />
+
+{#snippet dishRow(dish, pinned)}
+  <tr class:pinned>
+    <td class="col-id" data-label="ID">{dish.id}</td>
+    <td data-label="German">
+      {#each parseBoldLines(dish.germanText) as line, i}
+        {#if i > 0}<br />{/if}
+        {#each line as run}
+          {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
+        {/each}
+      {/each}
+    </td>
+    <td data-label="English">
+      {#each parseBoldLines(dish.englishText) as line, i}
+        {#if i > 0}<br />{/if}
+        {#each line as run}
+          {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
+        {/each}
+      {/each}
+    </td>
+    <td data-label="Category">{dish.category}</td>
+    <td data-label="Tags">{dish.tags?.length ? dish.tags.join(", ") : ""}</td>
+    <td class="col-actions">
+      <div class="row-actions">
+        <button
+          class="btn btn-icon btn-danger"
+          title="Delete"
+          onclick={() => ui.confirmDeleteDish(dish.id)}
+        >
+          <Icon name="trash" size={15} />
+        </button>
+        <button
+          class="btn btn-icon btn-warning"
+          title="Duplicate"
+          onclick={() => ui.openCopyDish(dish.id)}
+        >
+          <Icon name="copy" size={15} />
+        </button>
+        <button
+          class="btn btn-icon btn-primary"
+          title="Edit"
+          onclick={() => ui.openEditDish(dish.id)}
+        >
+          <Icon name="edit" size={15} />
+        </button>
+        <button
+          class="btn btn-icon btn-success"
+          title="Add to preview (shift-click for ×6)"
+          onclick={(e) => store.addToCards(dish.id, e.shiftKey)}
+        >
+          <Icon name="plus" size={15} />
+        </button>
+      </div>
+    </td>
+  </tr>
+{/snippet}
 
 <div class="toolbar">
   <div class="hint">
@@ -128,67 +184,17 @@
       </tr>
     </thead>
     <tbody>
-      {#each store.sortedDishes as dish (dish.id)}
-        <tr>
-          <td class="col-id" data-label="ID">{dish.id}</td>
-          <td data-label="Tags">{dish.tags?.length ? dish.tags.join(", ") : ""}</td>
-          <td data-label="Category">{dish.category}</td>
-          <td data-label="German">
-            {#each parseBoldLines(dish.germanText) as line, i}
-              {#if i > 0}<br />{/if}
-              {#each line as run}
-                {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
-              {/each}
-            {/each}
-          </td>
-          <td data-label="English">
-            {#each parseBoldLines(dish.englishText) as line, i}
-              {#if i > 0}<br />{/if}
-              {#each line as run}
-                {#if run.bold}<strong>{run.text}</strong>{:else}{run.text}{/if}
-              {/each}
-            {/each}
-          </td>
-          <td class="col-actions">
-            <div class="row-actions">
-              <button
-                class="btn btn-icon btn-danger"
-                title="Delete"
-                onclick={() => ui.confirmDeleteDish(dish.id)}
-              >
-                <Icon name="trash" size={15} />
-              </button>
-              <button
-                class="btn btn-icon btn-warning"
-                title="Duplicate"
-                onclick={() => ui.openCopyDish(dish.id)}
-              >
-                <Icon name="copy" size={15} />
-              </button>
-              <button
-                class="btn btn-icon btn-primary"
-                title="Edit"
-                onclick={() => ui.openEditDish(dish.id)}
-              >
-                <Icon name="edit" size={15} />
-              </button>
-              <button
-                class="btn btn-icon btn-success"
-                title="Add to preview (shift-click for ×6)"
-                onclick={(e) => store.addToCards(dish.id, e.shiftKey)}
-              >
-                <Icon name="plus" size={15} />
-              </button>
-            </div>
-          </td>
-        </tr>
+      {#if store.latestDish}
+        {@render dishRow(store.latestDish, true)}
+        {#each store.restDishes as dish (dish.id)}
+          {@render dishRow(dish, false)}
+        {/each}
       {:else}
         <tr
-          ><td colspan={columns.length + 1} class="empty-row"
-            >No dishes match your filters.</td
+          ><td colspan={columns.length + 1} class="empty-row">No dishes yet.</td
           ></tr
         >
-      {/each}
+      {/if}
     </tbody>
   </table>
 </div>
@@ -282,16 +288,23 @@
 
   .table-wrap {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 78vh;
     margin-bottom: 2rem;
   }
 
   table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.88rem;
   }
 
   thead th {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    height: 2.5rem;
     text-align: left;
     background: var(--surface-2);
     color: var(--text-muted);
@@ -326,6 +339,18 @@
   .col-id {
     color: var(--text-muted);
     width: 3.5rem;
+  }
+
+  tr.pinned {
+    position: sticky;
+    top: 2.5rem;
+    z-index: 5;
+    background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  tr.pinned:hover {
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
   }
 
   .col-actions {
@@ -365,6 +390,11 @@
       display: none;
     }
 
+    tr.pinned {
+      position: static;
+      box-shadow: none;
+    }
+
     tbody tr {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -391,6 +421,10 @@
 
     td:last-child {
       border-bottom: none;
+    }
+
+    .col-id {
+      display: none;
     }
 
     td::before {
