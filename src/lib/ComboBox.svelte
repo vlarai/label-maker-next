@@ -57,10 +57,8 @@
     }
   }
 
-  // Capture phase: the modal wrapper calls stopPropagation() on every
-  // click to keep clicks inside it from closing the modal, which would
-  // otherwise also swallow bubble-phase clicks before they reach this
-  // window listener.
+  // Capture phase so this fires even if something between the click
+  // target and window stops bubble-phase propagation.
   function onDocClick(e) {
     if (open && rootEl && !rootEl.contains(e.target)) open = false;
   }

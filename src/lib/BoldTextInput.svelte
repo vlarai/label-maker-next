@@ -2,6 +2,7 @@
   import { tick } from "svelte";
   import Icon from "./Icon.svelte";
   import { parseBoldLines } from "./richText.js";
+  import { ui } from "./ui.svelte.js";
 
   let { id = undefined, value = $bindable(""), placeholder = "" } = $props();
 
@@ -51,7 +52,7 @@
     rows="2"
     bind:value
   ></textarea>
-  {#if value}
+  {#if value && ui.showTextPreview}
     <div class="rendered-preview">
       {#each parseBoldLines(value) as line}
         <div class="preview-line">

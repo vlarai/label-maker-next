@@ -31,28 +31,32 @@
 </script>
 
 {#if ui.modalOpen}
-  <div
-    class="backdrop"
-    role="presentation"
-    onclick={() => ui.closeModal()}
-  >
+  <div class="backdrop" role="presentation">
     <div
       class="modal card-surface"
       role="dialog"
       aria-modal="true"
       tabindex="-1"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.key === "Escape" && ui.closeModal()}
     >
       <div class="modal-header">
         <h2>{form.id ? "Edit dish" : "Add dish"}</h2>
-        <button
-          class="btn btn-icon btn-ghost"
-          aria-label="Close"
-          onclick={() => ui.closeModal()}
-        >
-          <Icon name="close" />
-        </button>
+        <div class="modal-header-actions">
+          <button
+            class="btn btn-icon btn-ghost"
+            title={ui.showTextPreview ? "Hide text preview" : "Show text preview"}
+            aria-label={ui.showTextPreview ? "Hide text preview" : "Show text preview"}
+            onclick={() => ui.toggleTextPreview()}
+          >
+            <Icon name={ui.showTextPreview ? "eye" : "eyeOff"} />
+          </button>
+          <button
+            class="btn btn-icon btn-ghost"
+            aria-label="Close"
+            onclick={() => ui.closeModal()}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
       </div>
 
       <div class="modal-body">
@@ -162,6 +166,12 @@
 
   .modal-header h2 {
     font-size: 1.05rem;
+  }
+
+  .modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
   }
 
   .modal-body {
