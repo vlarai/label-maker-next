@@ -46,13 +46,25 @@ class LabelStore {
   dishes = $state(loadInitialDishes());
   cards = $state([]);
   search = $state("");
+  categoryFilter = $state([]);
+  tagFilter = $state([]);
   currentSort = $state("id");
   currentSortDir = $state("desc");
 
   get filteredDishes() {
     const q = this.search.toLowerCase();
-    if (!q) return this.dishes;
     return this.dishes.filter((dish) => {
+      if (
+        this.categoryFilter.length &&
+        !this.categoryFilter.includes(dish.category)
+      ) {
+        return false;
+      }
+      if (this.tagFilter.length) {
+        const dishTags = dish.tags || [];
+        if (!this.tagFilter.every((t) => dishTags.includes(t))) return false;
+      }
+      if (!q) return true;
       return (
         (dish.germanText || "").toLowerCase().includes(q) ||
         (dish.englishText || "").toLowerCase().includes(q) ||
@@ -98,6 +110,23 @@ class LabelStore {
 
   get tags() {
     return [...new Set(this.dishes.flatMap((d) => d.tags || []))].sort();
+  }
+
+  toggleCategoryFilter(category) {
+    const i = this.categoryFilter.indexOf(category);
+    if (i === -1) this.categoryFilter.push(category);
+    else this.categoryFilter.splice(i, 1);
+  }
+
+  toggleTagFilter(tag) {
+    const i = this.tagFilter.indexOf(tag);
+    if (i === -1) this.tagFilter.push(tag);
+    else this.tagFilter.splice(i, 1);
+  }
+
+  clearFilters() {
+    this.categoryFilter = [];
+    this.tagFilter = [];
   }
 
   sort(name) {

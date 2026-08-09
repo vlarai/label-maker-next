@@ -16,20 +16,102 @@
     if (store.currentSort !== col) return "sort";
     return store.currentSortDir === "asc" ? "sortUp" : "sortDown";
   }
+
+  let activeFilterCount = $derived(
+    store.categoryFilter.length + store.tagFilter.length,
+  );
+
+  let filterOpen = $state(false);
+  let filterMenuEl = $state();
+
+  function onDocClick(e) {
+    if (filterOpen && filterMenuEl && !filterMenuEl.contains(e.target)) {
+      filterOpen = false;
+    }
+  }
 </script>
+
+<svelte:window onclickcapture={onDocClick} />
 
 <div class="toolbar">
   <div class="hint">
     <Icon name="tag" size={14} /> Always print the PDF at 100% scale — card dimensions
     are calibrated to the physical stock.
   </div>
-  <button
-    class="btn btn-success"
-    disabled={!store.filteredDishes.length}
-    onclick={() => store.addAllToCards()}
-  >
-    <Icon name="plus" size={16} /> Add all to preview
-  </button>
+  <div class="toolbar-actions">
+    {#if store.categories.length || store.tags.length}
+      <div class="filter-menu" bind:this={filterMenuEl}>
+        <button
+          type="button"
+          class="btn btn-ghost"
+          onclick={() => (filterOpen = !filterOpen)}
+        >
+          <Icon name="filter" size={14} /> Filter
+          {#if activeFilterCount}
+            <span class="badge badge-accent">{activeFilterCount}</span>
+          {/if}
+        </button>
+        {#if filterOpen}
+          <div
+            class="filter-panel card-surface"
+            role="presentation"
+            onkeydown={(e) => e.key === "Escape" && (filterOpen = false)}
+          >
+            {#if store.categories.length}
+              <div class="filter-group">
+                <h4>Category</h4>
+                <div class="chip-row">
+                  {#each store.categories as cat}
+                    <button
+                      type="button"
+                      class="filter-chip"
+                      class:active={store.categoryFilter.includes(cat)}
+                      onclick={() => store.toggleCategoryFilter(cat)}
+                    >
+                      {cat}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+            {#if store.tags.length}
+              <div class="filter-group">
+                <h4>Tags</h4>
+                <div class="chip-row">
+                  {#each store.tags as tag}
+                    <button
+                      type="button"
+                      class="filter-chip"
+                      class:active={store.tagFilter.includes(tag)}
+                      onclick={() => store.toggleTagFilter(tag)}
+                    >
+                      {tag}
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+            {#if activeFilterCount}
+              <button
+                type="button"
+                class="btn btn-ghost clear-filters"
+                onclick={() => store.clearFilters()}
+              >
+                <Icon name="close" size={13} /> Clear filters
+              </button>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
+    <button
+      class="btn btn-success"
+      disabled={!store.filteredDishes.length}
+      onclick={() => store.addAllToCards()}
+    >
+      <Icon name="plus" size={16} /> Add all to preview
+    </button>
+  </div>
 </div>
 
 <div class="table-wrap card-surface">
@@ -103,7 +185,7 @@
       {:else}
         <tr
           ><td colspan={columns.length + 1} class="empty-row"
-            >No dishes match your search.</td
+            >No dishes match your filters.</td
           ></tr
         >
       {/each}
@@ -113,6 +195,7 @@
 
 <style>
   .toolbar {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -130,6 +213,71 @@
     background: var(--surface-2);
     padding: 0.45rem 0.75rem;
     border-radius: var(--radius-sm);
+  }
+
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    width: min(320px, 100%);
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .filter-group h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .filter-chip {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+      border-color 120ms ease,
+      color 120ms ease,
+      background-color 120ms ease;
+  }
+
+  .filter-chip:hover {
+    color: var(--text);
+  }
+
+  .filter-chip.active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
+    color: var(--accent);
+  }
+
+  .clear-filters {
+    align-self: flex-start;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.7rem;
   }
 
   .table-wrap {
