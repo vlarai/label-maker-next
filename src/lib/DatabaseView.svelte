@@ -113,6 +113,15 @@
             role="presentation"
             onkeydown={(e) => e.key === "Escape" && (filterOpen = false)}
           >
+            {#if activeFilterCount}
+              <button
+                type="button"
+                class="btn btn-ghost clear-filters"
+                onclick={() => store.clearFilters()}
+              >
+                <Icon name="close" size={13} /> Clear filters
+              </button>
+            {/if}
             {#if store.categories.length}
               <div class="filter-group">
                 <h4>Category</h4>
@@ -146,15 +155,6 @@
                   {/each}
                 </div>
               </div>
-            {/if}
-            {#if activeFilterCount}
-              <button
-                type="button"
-                class="btn btn-ghost clear-filters"
-                onclick={() => store.clearFilters()}
-              >
-                <Icon name="close" size={13} /> Clear filters
-              </button>
             {/if}
           </div>
         {/if}

@@ -118,11 +118,13 @@ class LabelStore {
   get categories() {
     return [
       ...new Set(this.dishes.map((d) => d.category).filter(Boolean)),
-    ].sort();
+    ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
   }
 
   get tags() {
-    return [...new Set(this.dishes.flatMap((d) => d.tags || []))].sort();
+    return [...new Set(this.dishes.flatMap((d) => d.tags || []))].sort(
+      (a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }),
+    );
   }
 
   toggleCategoryFilter(category) {
