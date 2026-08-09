@@ -64,12 +64,18 @@
           <h3>Dish</h3>
           <div class="field-grid">
             <div class="field">
-              <label for="germanText">German text</label>
-              <BoldTextInput id="germanText" bind:value={form.germanText} />
+              <BoldTextInput
+                id="germanText"
+                label="German"
+                bind:value={form.germanText}
+              />
             </div>
             <div class="field">
-              <label for="englishText">English text</label>
-              <BoldTextInput id="englishText" bind:value={form.englishText} />
+              <BoldTextInput
+                id="englishText"
+                label="English"
+                bind:value={form.englishText}
+              />
             </div>
           </div>
           <div class="field">

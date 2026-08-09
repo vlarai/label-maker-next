@@ -4,7 +4,12 @@
   import { parseBoldLines } from "./richText.js";
   import { ui } from "./ui.svelte.js";
 
-  let { id = undefined, value = $bindable(""), placeholder = "" } = $props();
+  let {
+    id = undefined,
+    label = undefined,
+    value = $bindable(""),
+    placeholder = "",
+  } = $props();
 
   let textareaEl;
 
@@ -35,10 +40,11 @@
 
 <div class="bold-text-input">
   <div class="toolbar">
+    {#if label}<label for={id}>{label}</label>{/if}
     <button
       type="button"
       class="bold-btn"
-      title="Bold selection"
+      title="Select some text, then click to wrap it in **bold**"
       aria-label="Bold selection"
       onclick={toggleBold}
     >
@@ -74,8 +80,14 @@
 
   .toolbar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
     margin-bottom: 0.25rem;
+  }
+
+  .toolbar label {
+    margin: 0;
   }
 
   .bold-btn {
