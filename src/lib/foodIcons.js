@@ -2,7 +2,7 @@
 // from the legacy public/images.js base64 blob — see CLAUDE.md).
 
 export function iconUrl(name) {
-  return `/icons/${name}.png`;
+  return `${import.meta.env.BASE_URL}icons/${name}.png`;
 }
 
 const byteCache = new Map();

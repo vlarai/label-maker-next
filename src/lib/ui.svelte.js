@@ -1,11 +1,32 @@
 import { store } from "./store.svelte.js";
 import { blankDish } from "./data.js";
 
+const THEME_KEY = "theme";
+
+function getInitialTheme() {
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === "light" || stored === "dark") return stored;
+  return matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
 class UiStore {
   activeTab = $state("database");
   modalOpen = $state(false);
   modalInitial = $state(blankDish());
   confirm = $state(null); // { message, confirmLabel, danger, onConfirm }
+  theme = $state(getInitialTheme());
+
+  constructor() {
+    document.documentElement.setAttribute("data-theme", this.theme);
+  }
+
+  toggleTheme() {
+    this.theme = this.theme === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, this.theme);
+    document.documentElement.setAttribute("data-theme", this.theme);
+  }
 
   openAddDish() {
     this.modalInitial = blankDish();

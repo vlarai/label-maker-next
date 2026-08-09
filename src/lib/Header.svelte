@@ -31,8 +31,24 @@
 
 <header class="app-header">
   <div class="container header-top">
-    <h1><Icon name="tag" size={22} /> Label Maker</h1>
+    <h1>
+      <img
+        class="logo"
+        src={`${import.meta.env.BASE_URL}icons/label-maker-icon-${ui.theme}.svg`}
+        alt=""
+        width="36"
+        height="36"
+      />
+      <span class="logo-text">Label Maker</span>
+    </h1>
     <div class="actions">
+      <button
+        class="btn btn-icon btn-ghost"
+        title={ui.theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        onclick={() => ui.toggleTheme()}
+      >
+        <Icon name={ui.theme === "dark" ? "sun" : "moon"} />
+      </button>
       <button
         class="btn btn-icon btn-success"
         title="Add dish"
@@ -135,6 +151,16 @@
     gap: 0.5rem;
     font-size: 1.25rem;
     color: var(--text);
+  }
+
+  .logo {
+    flex-shrink: 0;
+    border-radius: 50%;
+  }
+
+  .logo-text {
+    font-variant-caps: small-caps;
+    letter-spacing: 0.02em;
   }
 
   .actions {
