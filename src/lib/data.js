@@ -8,6 +8,7 @@ export const diets = {
   g: "Austrian",
   h: "Indian-Vegetarian",
   i: "Indian-Non-Vegetarian",
+  j: "Alcohol",
 };
 
 export const allergens = {
@@ -37,6 +38,7 @@ export const dietOptions = [
   { value: "g", label: "Austrian" },
   { value: "h", label: "Indian Veg" },
   { value: "i", label: "Indian Non Veg" },
+  { value: "j", label: "Alcohol" },
 ];
 
 export const allergenOptions = [
