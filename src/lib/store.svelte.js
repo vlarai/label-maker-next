@@ -54,15 +54,15 @@ class LabelStore {
   get filteredDishes() {
     const q = this.search.toLowerCase();
     return this.dishes.filter((dish) => {
-      if (
-        this.categoryFilter.length &&
-        !this.categoryFilter.includes(dish.category)
-      ) {
-        return false;
-      }
-      if (this.tagFilter.length) {
+      if (this.categoryFilter.length || this.tagFilter.length) {
+        const matchesCategory =
+          this.categoryFilter.length &&
+          this.categoryFilter.includes(dish.category);
         const dishTags = dish.tags || [];
-        if (!this.tagFilter.every((t) => dishTags.includes(t))) return false;
+        const matchesTag =
+          this.tagFilter.length &&
+          this.tagFilter.every((t) => dishTags.includes(t));
+        if (!matchesCategory && !matchesTag) return false;
       }
       if (!q) return true;
       return (
