@@ -170,7 +170,18 @@
   </div>
 </div>
 
-<div class="table-wrap card-surface">
+{#if store.latestDish}
+  <div class="latest-label">Latest addition</div>
+  <div class="table-wrap latest-wrap card-surface">
+    <table>
+      <tbody>
+        {@render dishRow(store.latestDish, true)}
+      </tbody>
+    </table>
+  </div>
+{/if}
+
+<div class="table-wrap list-wrap card-surface">
   <table>
     <thead>
       <tr>
@@ -184,9 +195,8 @@
       </tr>
     </thead>
     <tbody>
-      {#if store.latestDish}
-        {@render dishRow(store.latestDish, true)}
-        {#each store.restDishes as dish (dish.id)}
+      {#if store.sortedDishes.length}
+        {#each store.sortedDishes as dish (dish.id)}
           {@render dishRow(dish, false)}
         {/each}
       {:else}
@@ -288,9 +298,26 @@
 
   .table-wrap {
     overflow-x: auto;
-    overflow-y: auto;
-    max-height: 78vh;
     margin-bottom: 2rem;
+  }
+
+  .list-wrap {
+    overflow-y: auto;
+    /* Leaves room for the fixed app footer below the viewport. */
+    max-height: calc(100vh - 24rem);
+  }
+
+  .latest-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 1.25rem 0 0.5rem;
+  }
+
+  .latest-wrap {
+    margin-bottom: 1.25rem;
   }
 
   table {
@@ -342,11 +369,7 @@
   }
 
   tr.pinned {
-    position: sticky;
-    top: 2.5rem;
-    z-index: 5;
     background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-    box-shadow: 0 1px 0 var(--border);
   }
 
   tr.pinned:hover {
@@ -388,11 +411,6 @@
 
     thead {
       display: none;
-    }
-
-    tr.pinned {
-      position: static;
-      box-shadow: none;
     }
 
     tbody tr {

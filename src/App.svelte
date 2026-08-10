@@ -29,9 +29,16 @@
 <style>
   main {
     flex: 1;
+    padding-bottom: 4.5rem;
   }
 
   .app-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    background: var(--bg);
     border-top: 1px solid var(--border);
     padding: 1.25rem 0;
     color: var(--text-muted);
