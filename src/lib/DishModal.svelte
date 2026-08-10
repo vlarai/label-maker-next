@@ -39,7 +39,7 @@
       tabindex="-1"
     >
       <div class="modal-header">
-        <h2>{form.id ? "Edit dish" : "Add dish"}</h2>
+        <h2>{form.id ? "Edit" : "Add"}</h2>
         <div class="modal-header-actions">
           <button
             class="btn btn-icon btn-ghost"
@@ -61,7 +61,6 @@
 
       <div class="modal-body">
         <section>
-          <h3>Dish</h3>
           <div class="field-grid">
             <div class="field">
               <BoldTextInput
@@ -198,7 +197,7 @@
 
   .field-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 0.8rem;
     margin-bottom: 0.8rem;
   }
@@ -215,30 +214,27 @@
   }
 
   .chip-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.5rem;
   }
 
   .chip {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.4rem;
     font-size: 0.82rem;
     color: var(--text);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
+    padding: 0.15rem 0.3rem;
     cursor: pointer;
     user-select: none;
-    transition: border-color 120ms ease;
+    transition: color 120ms ease;
   }
 
   .chip:has(input:checked) {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
     color: var(--accent);
+    font-weight: 600;
   }
 
   .chip input {
@@ -280,6 +276,10 @@
 
     .modal {
       max-height: calc(100dvh - 1.5rem);
+    }
+
+    .field-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

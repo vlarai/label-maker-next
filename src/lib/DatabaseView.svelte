@@ -171,7 +171,6 @@
 </div>
 
 {#if store.latestDish}
-  <div class="latest-label">Latest addition</div>
   <div class="table-wrap latest-wrap card-surface">
     <table>
       <tbody>
@@ -307,17 +306,8 @@
     max-height: calc(100vh - 24rem);
   }
 
-  .latest-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
-    margin: 1.25rem 0 0.5rem;
-  }
-
   .latest-wrap {
-    margin-bottom: 1.25rem;
+    margin: 1.25rem 0;
   }
 
   table {
