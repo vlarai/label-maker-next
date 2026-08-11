@@ -43,14 +43,6 @@
         <div class="modal-header-actions">
           <button
             class="btn btn-icon btn-ghost"
-            title={ui.showTextPreview ? "Hide text preview" : "Show text preview"}
-            aria-label={ui.showTextPreview ? "Hide text preview" : "Show text preview"}
-            onclick={() => ui.toggleTextPreview()}
-          >
-            <Icon name={ui.showTextPreview ? "eye" : "eyeOff"} />
-          </button>
-          <button
-            class="btn btn-icon btn-ghost"
             aria-label="Close"
             onclick={() => ui.closeModal()}
           >

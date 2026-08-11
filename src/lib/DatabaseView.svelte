@@ -33,6 +33,17 @@
 
 <svelte:window onclickcapture={onDocClick} />
 
+{#snippet tableCols()}
+  <colgroup>
+    <col class="col-id" />
+    <col style="width: 32%" />
+    <col style="width: 32%" />
+    <col style="width: 16%" />
+    <col style="width: 20%" />
+    <col class="col-actions" />
+  </colgroup>
+{/snippet}
+
 {#snippet dishRow(dish, pinned)}
   <tr class:pinned>
     <td class="col-id" data-label="ID">{dish.id}</td>
@@ -173,6 +184,7 @@
 {#if store.latestDish}
   <div class="table-wrap latest-wrap card-surface">
     <table>
+      {@render tableCols()}
       <tbody>
         {@render dishRow(store.latestDish, true)}
       </tbody>
@@ -182,6 +194,7 @@
 
 <div class="table-wrap list-wrap card-surface">
   <table>
+    {@render tableCols()}
     <thead>
       <tr>
         {#each columns as col}
@@ -303,7 +316,7 @@
   .list-wrap {
     overflow-y: auto;
     /* Leaves room for the fixed app footer below the viewport. */
-    max-height: calc(100vh - 24rem);
+    max-height: calc(100vh - 21rem);
   }
 
   .latest-wrap {
@@ -312,6 +325,7 @@
 
   table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.88rem;
@@ -351,6 +365,7 @@
     padding: 0.65rem 0.9rem;
     border-top: 1px solid var(--border);
     vertical-align: top;
+    overflow-wrap: break-word;
   }
 
   .col-id {
@@ -367,6 +382,7 @@
   }
 
   .col-actions {
+    width: 11rem;
     text-align: center;
     white-space: nowrap;
   }

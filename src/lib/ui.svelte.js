@@ -2,7 +2,6 @@ import { store } from "./store.svelte.js";
 import { blankDish } from "./data.js";
 
 const THEME_KEY = "theme";
-const TEXT_PREVIEW_KEY = "showTextPreview";
 
 function getInitialTheme() {
   const stored = localStorage.getItem(THEME_KEY);
@@ -12,17 +11,12 @@ function getInitialTheme() {
     : "light";
 }
 
-function getInitialShowTextPreview() {
-  return localStorage.getItem(TEXT_PREVIEW_KEY) === "true";
-}
-
 class UiStore {
   activeTab = $state("database");
   modalOpen = $state(false);
   modalInitial = $state(blankDish());
   confirm = $state(null); // { message, confirmLabel, danger, onConfirm }
   theme = $state(getInitialTheme());
-  showTextPreview = $state(getInitialShowTextPreview());
 
   constructor() {
     document.documentElement.setAttribute("data-theme", this.theme);
@@ -32,11 +26,6 @@ class UiStore {
     this.theme = this.theme === "dark" ? "light" : "dark";
     localStorage.setItem(THEME_KEY, this.theme);
     document.documentElement.setAttribute("data-theme", this.theme);
-  }
-
-  toggleTextPreview() {
-    this.showTextPreview = !this.showTextPreview;
-    localStorage.setItem(TEXT_PREVIEW_KEY, String(this.showTextPreview));
   }
 
   openAddDish() {

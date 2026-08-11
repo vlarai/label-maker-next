@@ -29,7 +29,7 @@
 <style>
   main {
     flex: 1;
-    padding-bottom: 4.5rem;
+    padding-bottom: 2rem;
   }
 
   .app-footer {
@@ -40,9 +40,9 @@
     z-index: 10;
     background: var(--bg);
     border-top: 1px solid var(--border);
-    padding: 1.25rem 0;
+    padding: 0.4rem 0;
     color: var(--text-muted);
-    font-size: 0.82rem;
+    font-size: 0.6rem;
     text-align: center;
   }
 
