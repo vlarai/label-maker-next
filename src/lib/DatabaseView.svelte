@@ -370,7 +370,7 @@
 
   .col-id {
     color: var(--text-muted);
-    width: 3.5rem;
+    width: 4rem;
   }
 
   tr.pinned {
