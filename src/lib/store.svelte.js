@@ -2,12 +2,22 @@ import { defaultDishes, blankDish } from "./data.js";
 
 const STORAGE_KEY = "dishes";
 
+function stripNewlines(d) {
+  const out = { ...d };
+  if (typeof out.germanText === "string")
+    out.germanText = out.germanText.replaceAll("\n", " ");
+  if (typeof out.englishText === "string")
+    out.englishText = out.englishText.replaceAll("\n", " ");
+  return out;
+}
+
 function loadInitialDishes() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.map(migrateDish);
+      if (Array.isArray(parsed))
+        return parsed.map(migrateDish).map(stripNewlines);
     }
   } catch (e) {
     console.warn("Could not read dishes from localStorage", e);
@@ -66,8 +76,8 @@ class LabelStore {
       }
       if (!q) return true;
       return (
-        (dish.germanText || "").toLowerCase().includes(q) ||
-        (dish.englishText || "").toLowerCase().includes(q) ||
+        (dish.germanText || "").replaceAll("**", "").replaceAll("\n", " ").toLowerCase().includes(q) ||
+        (dish.englishText || "").replaceAll("**", "").replaceAll("\n", " ").toLowerCase().includes(q) ||
         (dish.category || "").toLowerCase().includes(q) ||
         (dish.tags && dish.tags.includes(q))
       );
