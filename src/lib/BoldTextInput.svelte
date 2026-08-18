@@ -192,7 +192,7 @@
         remaining -= 1;
       } else if (node.nodeName === "STRONG") {
         const len = stripZwsp(node.textContent).length;
-        if (remaining <= 2) {
+        if (remaining < 2) {
           const prev = node.previousSibling;
           return prev?.nodeType === Node.TEXT_NODE
             ? { node: prev, offset: prev.textContent.length }
@@ -289,9 +289,15 @@
   }
 
   function handleKeydown(e) {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    replaceSelectionWith("\n");
+    if (e.key === "Enter") {
+      e.preventDefault();
+      replaceSelectionWith("\n");
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+      e.preventDefault();
+      toggleBold();
+    }
   }
 
   function handlePaste(e) {
@@ -313,7 +319,13 @@
     const after = value.slice(end);
 
     let next, newStart, newEnd;
-    if (before.endsWith("**") && after.startsWith("**")) {
+    if (selected.length >= 4 && selected.startsWith("**") && selected.endsWith("**")) {
+      // Selection includes the ** markers themselves (e.g. a native
+      // select-all landing on the editor element spans the whole bold run).
+      next = before + selected.slice(2, -2) + after;
+      newStart = start;
+      newEnd = end - 4;
+    } else if (before.endsWith("**") && after.startsWith("**")) {
       next = before.slice(0, -2) + selected + after.slice(2);
       newStart = start - 2;
       newEnd = end - 2;
